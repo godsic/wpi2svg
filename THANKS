@@ -1,0 +1,7 @@
+This work incorporates knowledge aquired from the following projects:
+
+libdpen  										https://github.com/bakercp/libdpen
+inkling-ruby 									https://github.com/ccoenen/inkling-ruby
+Herbert Ellebruch's WPI format description		http://www.useful-tools.de/WPI-File-Downloads/WPI_FileFormat.pdf
+
+Authors would like to say thank you to the aforementined projects and valuable efforts of their contributors
