@@ -198,6 +198,10 @@ func main() {
 	flag.Parse()
 
 	wpiName := flag.Arg(0)
+	if len(wpiName) == 0 {
+		os.Exit(1)
+	}
+
 	f0, e = os.Open(wpiName)
 	defer func() {
 		if e != nil {
