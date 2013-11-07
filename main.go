@@ -35,6 +35,7 @@ import (
 	"math"
 	"os"
 	"path"
+	"strconv"
 )
 
 const BUFLEN = 1024 * 1024 * 1024 * 10
@@ -61,7 +62,7 @@ var f0, f1 *os.File
 
 type Stroke struct {
 	X, Y, P, TiltX, TiltY []int
-	SegmentsCount         uint
+	SegmentsCount         uint64
 }
 
 func (s *Stroke) AddCoords(x, y int16) {
@@ -82,7 +83,7 @@ func (s *Stroke) AddTilt(tx, ty byte) {
 type Layer struct {
 	Name         string
 	Strokes      []Stroke
-	StrokesCount uint
+	StrokesCount uint64
 }
 
 func (l *Layer) AddStroke() {
@@ -92,7 +93,7 @@ func (l *Layer) AddStroke() {
 
 type Canvas struct {
 	Layers      []Layer
-	LayersCount uint
+	LayersCount uint64
 }
 
 func (c *Canvas) AddLayer() {
@@ -115,8 +116,7 @@ func ReadLayers(r *bufio.Reader) (Canvas, error) {
 	c := Canvas{}
 	c.AddLayer()
 	l := &c.Layers[c.LayersCount-1]
-	l.Name = "#" + fmt.Sprintf("%d", c.LayersCount)
-
+	l.Name = "l" + strconv.FormatUint(c.LayersCount, 10)
 	for {
 		_, e = r.Read(head)
 		if e == io.EOF {
@@ -175,9 +175,11 @@ func PressureToWidthFunc(p float64) float64 {
 
 func AddLayersToSVG(s *svg.SVG, c Canvas) error {
 	for _, l := range c.Layers {
-		s.Group(l.Name)
-		for _, stroke := range l.Strokes {
-			for i := uint(0); i < stroke.SegmentsCount-1; i++ {
+		s.Gid(l.Name)
+		for i, stroke := range l.Strokes {
+			strokeID := "s" + strconv.Itoa(i)
+			s.Gid(strokeID)
+			for i := uint64(0); i < stroke.SegmentsCount-1; i++ {
 				p := 0.5 * float64(stroke.P[i]+stroke.P[i+1]) / MAX_P_LEVELS
 				width := PressureToWidthFunc(p)
 				colour := PressureToColourFunc(p)
@@ -186,6 +188,7 @@ func AddLayersToSVG(s *svg.SVG, c Canvas) error {
 				scolour := s.RGB(icolour, icolour, icolour)[5:]
 				s.Line(stroke.X[i], stroke.Y[i], stroke.X[i+1], stroke.Y[i+1], "stroke-linejoin:round;stroke-linecap:round;fill:none;stroke:"+scolour+";stroke-width:"+swidth)
 			}
+			s.Gend()
 		}
 		s.Gend()
 	}
