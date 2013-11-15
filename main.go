@@ -38,7 +38,7 @@ import (
 	"strconv"
 )
 
-const BUFLEN = 1024 * 1024 * 1024 * 10
+const BUFLEN = 1024 * 1024 * 10
 const HEADERLEN = 2059
 const MAX_P_TO_WIDTH = 6.0
 const MAX_P_TO_COLOUR = 254.0
