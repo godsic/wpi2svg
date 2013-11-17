@@ -207,11 +207,14 @@ func main() {
 
 	f0, e = os.Open(wpiName)
 	defer func() {
-		if e != nil {
-			log.Print(e)
-		}
 		f0.Close()
 	}()
+	
+	if os.IsNotExist(e) {
+		fmt.Println("wpi2go: "+ wpiName + ": No such file or directory")
+		return 
+	}
+
 	f0.Seek(HEADERLEN, 0)
 
 	svgName := wpiName[0:len(wpiName)-len(path.Ext(wpiName))] + ".svg"
