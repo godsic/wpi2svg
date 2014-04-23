@@ -59,9 +59,6 @@ const (
 	ID_STROKE_END    uint8 = 0
 )
 
-var layersCount int = 0
-var f0, f1 *os.File
-
 type Stroke struct {
 	X, Y, P, TiltX, TiltY []int
 	SegmentsCount         uint64
@@ -163,7 +160,6 @@ func ReadLayers(r *bufio.Reader) (Canvas, error) {
 			_, e = r.Read(tmp)
 		}
 	}
-	layersCount++
 	return c, e
 }
 
@@ -197,18 +193,10 @@ func AddLayersToSVG(s *svg.SVG, c Canvas) error {
 	return nil
 }
 
-func main() {
-	var e error
-
-	flag.Parse()
-
-	wpiName := flag.Arg(0)
-	if len(wpiName) == 0 {
-		os.Exit(1)
-	}
-
-	f0, e = os.Open(wpiName)
+func ProcessFile(wpiName string, complete chan int) {
+	f0, e := os.Open(wpiName)
 	defer func() {
+		complete <- 1
 		f0.Close()
 	}()
 
@@ -220,7 +208,7 @@ func main() {
 	f0.Seek(HEADERLEN, 0)
 
 	svgName := wpiName[0:len(wpiName)-len(path.Ext(wpiName))] + ".svg"
-	f1, e = os.OpenFile(svgName, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0750)
+	f1, e := os.OpenFile(svgName, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0750)
 	defer func() {
 		if e != nil {
 			log.Print(e)
@@ -238,4 +226,24 @@ func main() {
 
 	canvas.End()
 	f1.Sync()
+}
+
+func main() {
+
+	flag.Parse()
+
+	wpiNames := flag.Args()
+	if len(wpiNames) == 0 {
+		os.Exit(1)
+	}
+
+	complete := make(chan int)
+
+	for _, wpiName := range wpiNames {
+		go ProcessFile(wpiName, complete)
+	}
+
+	for _, _ = range wpiNames {
+		<-complete
+	}
 }
