@@ -38,6 +38,8 @@ import (
 	"strconv"
 )
 
+const SIZEX = 2828
+const SIZEY = 4000
 const BUFLEN = 1024 * 1024 * 10
 const HEADERLEN = 2059
 const MAX_P_TO_WIDTH = 6.0
@@ -209,10 +211,10 @@ func main() {
 	defer func() {
 		f0.Close()
 	}()
-	
+
 	if os.IsNotExist(e) {
-		fmt.Println("wpi2go: "+ wpiName + ": No such file or directory")
-		return 
+		fmt.Println("wpi2go: " + wpiName + ": No such file or directory")
+		return
 	}
 
 	f0.Seek(HEADERLEN, 0)
@@ -229,7 +231,7 @@ func main() {
 	wpiReader := bufio.NewReaderSize(f0, BUFLEN)
 
 	canvas := svg.New(f1)
-	canvas.Start(2828, 4000) // WTF? NO DPI, NO PHYSICAL DIMENSONS?
+	canvas.Startview(SIZEX, SIZEY, 0, 0, SIZEX, SIZEY) // WTF? NO DPI, NO PHYSICAL DIMENSONS?
 
 	c, _ := ReadLayers(wpiReader)
 	AddLayersToSVG(canvas, c)
